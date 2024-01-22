@@ -10,7 +10,6 @@ import (
 )
 
 type Client struct {
-	url    string
 	client *http.Client
 }
 

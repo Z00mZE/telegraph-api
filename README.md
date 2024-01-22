@@ -69,5 +69,4 @@ func main() {
 		slog.Any("account", account),
 	)
 }
-
 ```
