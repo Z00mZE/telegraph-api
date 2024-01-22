@@ -1,0 +1,50 @@
+version: "3"
+
+env:
+  GOMODULE: github.com/Z00mZE/telegraph-api
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  install-wire:
+    internal: true
+    desc: "Installation Wire dependency injection."
+    cmds:
+      - go install github.com/google/wire/cmd/wire@latest
+
+  install-utils:
+    desc: "Installation utility packages"
+    aliases:
+      - iu
+    cmds:
+      - task: install-wire
+
+  upgrade:
+    desc: "Обновление пакетов приложения"
+    aliases:
+      - upg
+    cmds:
+      - go get -u all
+      - go mod download
+      - go mod tidy
+
+  wire-generate:
+    aliases:
+      - wg
+    desc: wire di codegen
+    cmds:
+      - wire gen ./...
+
+  lint:
+    desc: "Запуск линтера"
+    cmds:
+      - golangci-lint run  -v
+
+  lint-fix:
+    desc: "Запуск линтера с авто-исправлением предупреждений"
+    aliases:
+      - lf
+    cmds:
+      - golangci-lint run -v --fix
