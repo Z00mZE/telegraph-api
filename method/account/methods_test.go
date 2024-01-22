@@ -4,9 +4,9 @@ import (
 	"context"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/Z00mZE/telegraph-api/model"
-	"github.com/Z00mZE/telegraph-api/pkg/rest"
 )
 
 func TestAccount_AccountInfo(t *testing.T) {
@@ -37,128 +37,83 @@ func TestAccount_AccountInfo(t *testing.T) {
 }
 
 func TestAccount_CreateAccount(t *testing.T) {
-	type fields struct {
-		client *rest.Client
-	}
-	type args struct {
-		ctx     context.Context
-		account model.Account
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    string
-		want1   *model.Account
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &Account{
-				client: tt.fields.client,
-			}
-			got, got1, err := c.CreateAccount(tt.args.ctx, tt.args.account)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CreateAccount() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("CreateAccount() got = %v, want %v", got, tt.want)
-			}
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("CreateAccount() got1 = %v, want %v", got1, tt.want1)
-			}
-		})
-	}
+
+	ctx := context.Background()
+
+	t.Run("CreateAccount", func(t *testing.T) {
+		account := model.Account{
+			ShortName:  "ShortName",
+			AuthorName: "AuthorName",
+		}
+
+		c := NewAccount()
+		token, _, err := c.CreateAccount(ctx, account)
+		if token == "" {
+			t.Error("CreateAccount() want not empty token, got empty")
+			return
+		}
+		if err != nil {
+			t.Errorf("CreateAccount() error = %v", err)
+			return
+		}
+	})
 }
 
 func TestAccount_EditAccountInfo(t *testing.T) {
-	type fields struct {
-		client *rest.Client
-	}
-	type args struct {
-		ctx     context.Context
-		token   string
-		account model.Account
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *model.Account
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &Account{
-				client: tt.fields.client,
-			}
-			got, err := c.EditAccountInfo(tt.args.ctx, tt.args.token, tt.args.account)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("EditAccountInfo() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("EditAccountInfo() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	ctx := context.Background()
+
+	c := NewAccount()
+
+	t.Run("EditAccountInfo", func(t *testing.T) {
+		account := model.Account{
+			ShortName:  "ShortName",
+			AuthorName: "AuthorName",
+		}
+
+		token, _, hasError := c.CreateAccount(ctx, account)
+		if hasError != nil {
+			t.Errorf("CreateAccount() error = %v", hasError)
+			return
+		}
+
+		account.AuthorName = time.Now().String()
+
+		got, err := c.EditAccountInfo(ctx, token, account)
+		if err != nil {
+			t.Errorf("EditAccountInfo() error = %v", err)
+			return
+		}
+		if !reflect.DeepEqual(got.AuthorName, account.AuthorName) {
+			t.Errorf("EditAccountInfo() got = %v, want %v", got, account.AuthorName)
+		}
+	})
 }
 
 func TestAccount_RevokeAccessToken(t *testing.T) {
-	type fields struct {
-		client *rest.Client
-	}
-	type args struct {
-		ctx   context.Context
-		token string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    string
-		want1   *model.Account
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &Account{
-				client: tt.fields.client,
-			}
-			got, got1, err := c.RevokeAccessToken(tt.args.ctx, tt.args.token)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("RevokeAccessToken() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("RevokeAccessToken() got = %v, want %v", got, tt.want)
-			}
-			if !reflect.DeepEqual(got1, tt.want1) {
-				t.Errorf("RevokeAccessToken() got1 = %v, want %v", got1, tt.want1)
-			}
-		})
-	}
-}
+	ctx := context.Background()
 
-func TestNewAccount(t *testing.T) {
-	tests := []struct {
-		name string
-		want *Account
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewAccount(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewAccount() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	c := NewAccount()
+
+	t.Run("RevokeAccessToken", func(t *testing.T) {
+		user := model.Account{
+			ShortName:  "ShortName",
+			AuthorName: "AuthorName",
+		}
+
+		oldToken, _, hasError := c.CreateAccount(ctx, user)
+		if hasError != nil {
+			t.Errorf("CreateAccount() error = %v", hasError)
+			return
+		}
+
+		if _, _, err := c.RevokeAccessToken(ctx, oldToken); err != nil {
+			t.Errorf("RevokeAccessToken() error = %v", err)
+			return
+		}
+
+		if _, _, err := c.RevokeAccessToken(ctx, oldToken); err == nil {
+			t.Error("RevokeAccessToken() required error? but not got")
+			return
+		}
+	})
 }

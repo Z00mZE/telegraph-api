@@ -11,7 +11,7 @@ type createAccountRequest struct {
 	AuthorURL string `json:"author_url,omitempty"`
 }
 type accountResponse struct {
-	AccessToken string
+	AccessToken string `json:"access_token"`
 	// URL to authorize a browser on telegra.ph and connect it to a Telegraph account. This URL is valid
 	// for only one use and for 5 minutes only.
 	AuthURL string `json:"auth_url,omitempty"`
@@ -51,5 +51,5 @@ type getAccountInfoRequest struct {
 }
 
 type revokeAccessTokenRequest struct {
-	AccessToken string
+	AccessToken string `json:"access_token"`
 }
